@@ -2,7 +2,7 @@
 
 ## How I personally got vfio working with windows 11 using many different guides, inspired by [this guide](https://github.com/mike11207/single-gpu-passthrough-amd-gpu/tree/mainhttps:/)
 
-After months of on and off strugling with getting my AMD 7600 XT 16gb to properly passthrough, I was able to narrow down my problems to a few issues with my Linux configuration, specifically with trying to remove the amdgpu kernel module and properly detaching the gpu from the system with virsh.
+After months of on and off struggling with getting my AMD 7600 XT 16gb to properly passthrough, I was able to narrow down my problems to a few issues with my Linux configuration, specifically with trying to remove the amdgpu kernel module and properly detaching the gpu from the system with `virsh`.
 
 ## If you encounter any issues, want to improve my instructions, or enhance the scripts, feel free to do so! My memory was a bit fuzzy making this and my pc has had a lot of new packages and updates since I started this so I might've left out some packages or some instructions.
 
@@ -38,7 +38,7 @@ This will properly install all the required software, including a gui interface 
 
 `sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager libguestfs-tools`
 
-There may be more packages not installed here which add extra funcitonality to work with qemu and virtual machines, but this is enough to get virtual machines working with all necessary features with additional helper scripts for debugging should you encounter an error not adressed here.
+There may be more packages not installed here which add extra functionality to work with qemu and virtual machines, but this is enough to get virtual machines working with all necessary features with additional helper scripts for debugging should you encounter an error not addressed here.
 
 # Step 5: Configuring qemu, libvirtd, and the local user
 
@@ -78,7 +78,7 @@ sudo systemctl enable libvirtd
 
 ## Editing qemu.conf
 
-In any editor with root priveleges, go to `/etc/libvirt/qemu.conf`, and make sure libvirtd starts as your user and your group
+In any editor with root privileges, go to `/etc/libvirt/qemu.conf`, and make sure libvirtd starts as your user and your group
 
 Change `#user = "root"` to `user = "your username"`
 
@@ -98,11 +98,11 @@ I intentionally did not start the daemon since the next steps need reboots which
 
 Grab a modern windows 10, or windows 11 image and the [virtio-win](https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso) drivers
 
-Feel free to use any method to debloat the mess that has become of windows, it helps a TON for performance and SSD health!
+Feel free to use any method to de-bloat the mess that has become of windows, it helps a TON for performance and SSD health!
 
 Once you have both ISOs, consult any of the many guides online on how to create a windows qemu virtual machine, and make sure it's one that utilizes and installs the virtio drivers during pre and post-installation
-
-Once windows boots to a desktop, make sure you have the virtio iso mounted in the VM as a cdrom and run the x64 msi installer to make sure all drivers are working and windows plays nice in it's environment.
+ 
+Once windows boots to a desktop, make sure you have the virtio iso mounted in the VM as a CD-ROM and run the x64 msi installer to make sure all drivers are working and windows plays nice in it's environment.
 
 # Step 7: Preparations for our scripts
 
@@ -213,7 +213,7 @@ Now, we must create 6 new directories to store our VM startup and shutdown scrip
 /etc/libvirt/hooks/qemu.d/YOUR_VM/release/end
 ```
 
-Once created, in any text editor with root priveliges, edit a new file in this directory:
+Once created, in any text editor with root privileges, edit a new file in this directory:
 
 `/etc/libvirt/hooks/qemu.d/YOUR_VM/prepare/begin/start.sh`
 
@@ -225,7 +225,7 @@ Repeat both steps above for this script:
 
 `/etc/libvirt/hooks/qemu.d/win10/release/end/revert.sh`
 
-Now, with that text editor with root priveliges, go to `/etc/libvirt/hooks/kvm.conf` and add these 2 lines, and replace xx with your gpu ID you passed through earler, it could be `01`, in my case it was `2d`, but it could be any 2-digit hexadecimal number:
+Now, with that text editor with root privileges, go to `/etc/libvirt/hooks/kvm.conf` and add these 2 lines, and replace xx with your gpu ID you passed through earlier, it could be `01`, in my case it was `2d`, but it could be any 2-digit hexadecimal number:
 
 ```
 VIRSH_GPU_VIDEO=pci_0000_xx_00_0
@@ -235,7 +235,7 @@ VIRSH_GPU_AUDIO=pci_0000_xx_00_1
 
 # Step 9: Testing and debugging the hooks and the scripts
 
-Now, this is what tripped me up for so many months, and it was all because I couldn't properly `rmmod amdgpu`. What we're about to do, you'll need a second way of interfacing with the computer that doesn't require a display, like an SSH session from another laptop, as we will lose complete control and dislplay output of the computer while debugging, but the computer will be running headless.
+Now, this is what tripped me up for so many months, and it was all because I couldn't properly `rmmod amdgpu`. What we're about to do, you'll need a second way of interfacing with the computer that doesn't require a display, like an SSH session from another laptop, as we will lose complete control and display output of the computer while debugging, but the computer will be running headless.
 
 ## Finding errors
 
@@ -250,7 +250,7 @@ IF YOU SEE ANY ERRORS, IMMEDIATELY Ctrl+C, but DO NOT REBOOT, STAY IN THAT SHELL
 In my case, I had this error:
 `modprobe: FATAL: Module amdgpu is in use.`
 
-This happens for usually one of 2 reasons, another kernel module is using amdgpu, and/or certian software and/or daemons are using amdgpu.
+This happens for usually one of 2 reasons, another kernel module is using amdgpu, and/or certain software and/or daemons are using amdgpu.
 
 First, run this command:
 
@@ -285,9 +285,9 @@ To find these services and processes, run this command (RUN THIS ONLY AFTER `sta
 
 `sudo lsof | grep amdgpu`
 
-### If this gives a huge output that is more than a few lines, and includes stuff from your display manager, wayland, xorg, or other processes, then your display manager is not shut down, make sure it is fully shut down (for me I execute `sudo systemctl stop sddm`) before proceeding. If you're using gnome, there are other guides to show how to properly shut down gnome and it's display manager
+### If this gives a huge output that is more than a few lines, and includes stuff from your display manager, wayland, Xorg, or other processes, then your display manager is not shut down, make sure it is fully shut down (for me I execute `sudo systemctl stop sddm`) before proceeding. If you're using gnome, there are other guides to show how to properly shut down gnome and it's display manager
 
-In my case, a process which controls my fans, `coolercontrold` was using the amdgpu kernel driver, specifically the ko shared library file. By stopping this service, and re-running the script, SUCCESS! My gpu was successfully detatched! Any services or processes you find must be stopped in the `start.sh` (I have a comment where you need to place the commands in the file). Also, restart these processes and services in the `revert.sh` file so that your desktop and apps can be properly restored.
+In my case, a process which controls my fans, `coolercontrold` was using the amdgpu kernel driver, specifically the ko shared library file. By stopping this service, and re-running the script, SUCCESS! My gpu was successfully detached! Any services or processes you find must be stopped in the `start.sh` (I have a comment where you need to place the commands in the file). Also, restart these processes and services in the `revert.sh` file so that your desktop and apps can be properly restored.
 
 Once these changes are made, run the `start.sh` file, verify that it exits and does not hang(it may take up to 20-30 seconds for it to exit due to the sleep commands in the file), and do the same for `revert.sh`. If your login screen properly restores after `revert.sh` is executed, your single-gpu-passthrough VFIO VM is ready!
 
@@ -312,7 +312,7 @@ wireplumb 33613                            lando   25u      CHR              116
 
 In this case, my sound service, `pipewire`, was still running, and despite not having the ko file open like in the `amdgpu` error, it does have multiple block devices open for the `snd_hda_intel` kernel module, which will cause modprobe to fail.
 
-If this happens, edit your `start.sh` and `revert.sh` to stop and restart these processes, which I have already included the lines to do so. For `start.sh`, it should be around lines 8-10. Additinally, to restart your audio service once the VM is shut down, uncomment the start command around lines 33-34 `revert.sh`.
+If this happens, edit your `start.sh` and `revert.sh` to stop and restart these processes, which I have already included the lines to do so. For `start.sh`, it should be around lines 8-10. Additionally, to restart your audio service once the VM is shut down, uncomment the start command around lines 33-34 `revert.sh`.
 
 Keep in mind this is only limited troubleshooting from my experience, and there may be more edge cases and issues you may have, but the method of using `lsof` has not had any issues yet with removing kernel modules.
 
@@ -320,4 +320,4 @@ Keep in mind this is only limited troubleshooting from my experience, and there 
 
 ### Before starting the VM for the first time with GPU passthrough, make sure windows update is not paused or hindered in any way. Once started, wait roughly 4 minutes for windows to boot and windows update to detect your card, during this time you will have no display output. Then, shut down, reboot without gpu passthrough(in my case I have a duplicate config already pre-configured without passthrough), go to windows update, install the AMD display driver that shows up, and ONLY once fully installed, shut down the vm.
 
-After the first boot, you may have to wait up to 4 minutes(from my experience) for a display signal, or even longer if windows takes a hot second to pick up your gpu drivers and install them, and configure your gpu. I can confirm that multiple displays work, too. When shutting down, once windows shuts down, it may take up to 30 seconds to a minute for your display and login to restore, due to reloading the kernel driver and the delays to prevent race conditions. If you want to reduce these delays, see how long it takes your computer to carry out each task in the startup and shutdown script and adjust accordingly. The delays are intentionally long for extra safety and so that the GPU is not detatched in an unsafe state.
+After the first boot, you may have to wait up to 4 minutes(from my experience) for a display signal, or even longer if windows takes a hot second to pick up your gpu drivers and install them, and configure your gpu. I can confirm that multiple displays work, too. When shutting down, once windows shuts down, it may take up to 30 seconds to a minute for your display and login to restore, due to reloading the kernel driver and the delays to prevent race conditions. If you want to reduce these delays, see how long it takes your computer to carry out each task in the startup and shutdown script and adjust accordingly. The delays are intentionally long for extra safety and so that the GPU is not detached in an unsafe state.
