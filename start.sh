@@ -16,6 +16,10 @@ echo 0 > /sys/class/vtconsole/vtcon1/bind
 sleep 10
 
 
+modprobe vfio
+modprobe vfio_pci
+modprobe vfio_iommu_type1
+
 modprobe -r amdgpu
 modprobe -r snd_hda_intel
 
@@ -23,7 +27,3 @@ virsh nodedev-detach $VIRSH_GPU_VIDEO
 virsh nodedev-detach $VIRSH_GPU_AUDIO
 
 sleep 10
-
-modprobe vfio
-modprobe vfio_pci
-modprobe vfio_iommu_type1
