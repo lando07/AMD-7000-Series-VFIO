@@ -291,6 +291,31 @@ In my case, a process which controls my fans, `coolercontrold` was using the amd
 
 Once these changes are made, run the `start.sh` file, verify that it exits and does not hang(it may take up to 20-30 seconds for it to exit due to the sleep commands in the file), and do the same for `revert.sh`. If your login screen properly restores after `revert.sh` is executed, your single-gpu-passthrough VFIO VM is ready!
 
+## Troubleshooting snd_hda_intel
+One of the errors that can appear during `start.sh` is `modprobe: FATAL: Module snd_hda_intel is in use.`. Just like in the case of `amdgpu`, this is a service using `snd_hda_intel`, not a kernel module. 
+
+To rectify this, run this command:
+
+`sudo lsof | grep snd`
+
+An output similar(or much longer) to this will appear:
+
+```pipewire  33612                            lando   54u      CHR              116,1       0t0        580 /dev/snd/seq
+pipewire  33612                            lando   55u      CHR              116,1       0t0        580 /dev/snd/seq
+pipewire  33612 33615 module-rt            lando   54u      CHR              116,1       0t0        580 /dev/snd/seq
+pipewire  33612 33615 module-rt            lando   55u      CHR              116,1       0t0        580 /dev/snd/seq
+pipewire  33612 33616 data-loop            lando   54u      CHR              116,1       0t0        580 /dev/snd/seq
+pipewire  33612 33616 data-loop            lando   55u      CHR              116,1       0t0        580 /dev/snd/seq
+wireplumb 33613                            lando   24u      CHR              116,6       0t0       1718 /dev/snd/controlC1
+wireplumb 33613                            lando   25u      CHR              116,3       0t0        916 /dev/snd/controlC0
+```
+
+In this case, my sound service, `pipewire`, was still running, and despite not having the ko file open like in the `amdgpu` error, it does have multiple block devices open for the `snd_hda_intel` kernel module, which will cause modprobe to fail.
+
+If this happens, edit your `start.sh` and `revert.sh` to stop and restart these processes, which I have already included the lines to do so. For `start.sh`, it should be around lines 8-10. Additinally, to restart your audio service once the VM is shut down, uncomment the start command around lines 33-34 `revert.sh`.
+
+Keep in mind this is only limited troubleshooting from my experience, and there may be more edge cases and issues you may have, but the method of using `lsof` has not had any issues yet with removing kernel modules.
+
 # Step 10: Installing the graphics drivers and finalizing the VM setup
 
 ### Before starting the VM for the first time with GPU passthrough, make sure windows update is not paused or hindered in any way. Once started, wait roughly 4 minutes for windows to boot and windows update to detect your card, during this time you will have no display output. Then, shut down, reboot without gpu passthrough(in my case I have a duplicate config already pre-configured without passthrough), go to windows update, install the AMD display driver that shows up, and ONLY once fully installed, shut down the vm.

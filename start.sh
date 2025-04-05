@@ -5,6 +5,11 @@ set -x
 
 source "/etc/libvirt/hooks/kvm.conf"
 
+#may not be required, if snd_hda_intel fails to remove, make sure your audio service(in my case pipewire) is stopped by uncommenting this line
+#then, go to revert.sh and uncomment the line near the bottom which starts pipewire
+# systemctl --user stop pipewire
+
+
 #replace sddm with your display manager, or consult other guides for how to do VFIO with those display managers
 systemctl stop sddm
 #Add additional services that use the amdgpu driver below this line

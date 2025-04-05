@@ -29,3 +29,8 @@ sleep 3
 #Add additional services that use the amdgpu driver below this line
 #replace sddm with your display manager, or consult other guides for how to do VFIO with those display managers
 systemctl start sddm
+
+sleep 3
+
+#may not be required, only uncomment this line if the start script stops your audio service
+#systemctl --user start pipewire
