@@ -10,13 +10,13 @@ source "/etc/libvirt/hooks/kvm.conf"
 # systemctl stop YOUR_AUDIO_SERVICE
 
 
-systemctl stop sddm coolercontrold
+systemctl stop sddm
 
 echo 0 > /sys/class/vtconsole/vtcon0/bind
 echo 0 > /sys/class/vtconsole/vtcon1/bind
 
 #uncomment the next line if you're getting a black screen
-echo efi-framebuffer.0 > /sys/bus/platform/drivers/efi-framebuffer/unbind
+#echo efi-framebuffer.0 > /sys/bus/platform/drivers/efi-framebuffer/unbind
 
 sleep 10
 

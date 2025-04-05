@@ -19,7 +19,7 @@ echo 1 > /sys/class/vtconsole/vtcon1/bind
 
 sleep 3
 
-echo "efi-framebuffer.0" > /sys/bus/platform/drivers/efi-framebuffer/bind
+#echo "efi-framebuffer.0" > /sys/bus/platform/drivers/efi-framebuffer/bind
 
 modprobe amdgpu
 modprobe snd_hda_intel
