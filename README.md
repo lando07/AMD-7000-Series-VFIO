@@ -320,7 +320,7 @@ wireplumb 33613                            lando   25u      CHR              116
 
 In this case, my sound service, `pipewire`, was still running, and unlike `coolercontrold`, which had the ko file open like in the `amdgpu` error, it does have multiple block devices open provided by the `snd_hda_intel` kernel module, which will cause modprobe to fail.
 
-If this happens, edit your `start.sh` and `revert.sh` to stop and restart these processes, which I have already included the lines to do so. For `start.sh`, it should be around lines 8-10. Additionally, to restart your audio service once the VM is shut down, uncomment the start command around lines 33-34 `revert.sh`.
+If the service is `pipewire`, nothing is needed, your sound service will be able to restored once the virtual machine exits. I'm not sure if any other sound services need to be stopped. Please open an issue or Pull Request if you find any other issues related to this modprobe fail.
 
 Keep in mind this is only limited troubleshooting from my experience, and there may be more edge cases and issues you may have, but the method of using `lsof` has not had any issues yet with removing kernel modules.
 

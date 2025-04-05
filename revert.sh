@@ -33,4 +33,4 @@ systemctl start sddm
 sleep 3
 
 #may not be required, only uncomment this line if the start script stops your audio service
-#systemctl --user start pipewire
+#systemctl start YOUR_AUDIO_SERVICE
