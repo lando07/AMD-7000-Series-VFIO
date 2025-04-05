@@ -249,7 +249,7 @@ The most common error(and the one that broke everything) is unloading the amdgpu
 
 In my case, I had this error:
 `modprobe: FATAL: Module amdgpu is in use.`
-If the error above shows up, go to [here](https://github.com/lando07/AMD-7000-Series-VFIO?tab=readme-ov-file#Troubleshooting_AMDGPU)
+If the error above shows up, go to [here](https://github.com/lando07/AMD-7000-Series-VFIO?tab=readme-ov-file#Troubleshooting_AMDGPU) or the heading "Troubleshooting AMDGPU"
 
 I also had this error:
 `modprobe: FATAL: Module snd_hda_intel is in use.`
