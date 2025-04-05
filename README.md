@@ -310,7 +310,7 @@ wireplumb 33613                            lando   24u      CHR              116
 wireplumb 33613                            lando   25u      CHR              116,3       0t0        916 /dev/snd/controlC0
 ```
 
-In this case, my sound service, `pipewire`, was still running, and despite not having the ko file open like in the `amdgpu` error, it does have multiple block devices open for the `snd_hda_intel` kernel module, which will cause modprobe to fail.
+In this case, my sound service, `pipewire`, was still running, and unlike `coolercontrold`, which had the ko file open like in the `amdgpu` error, it does have multiple block devices open provided by the `snd_hda_intel` kernel module, which will cause modprobe to fail.
 
 If this happens, edit your `start.sh` and `revert.sh` to stop and restart these processes, which I have already included the lines to do so. For `start.sh`, it should be around lines 8-10. Additionally, to restart your audio service once the VM is shut down, uncomment the start command around lines 33-34 `revert.sh`.
 
