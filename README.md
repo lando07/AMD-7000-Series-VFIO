@@ -157,7 +157,7 @@ IOMMU Group 19:
 
 For me, the pci ID for my gpu is `2d:00.0`, and the audio is `2d:00.1`
 
-If, for some reason, your gpu iommu group, or HDMI/DP Audio group have more than just one device, ALL of the devices in each group MUST be passed through to the VM or the VM will not work.
+If, for some reason, your gpu iommu group, or HDMI/DP Audio group have more than just one device, *all* of the devices in each group ***must*** be passed through to the VM or the VM will not work.
 
 ## Editing our VM XML
 
@@ -168,13 +168,13 @@ Threads: (if hyperthreading, 2, if not, 1)
 
 Also, I'm not sure how, but make sure that in the XML editor, the `<hyperv>...</hyperv>` tag is present, it helps gain massive performance in Windows.(Please let me know how to do this through filing an issue or a pull request)
 
-Also, inside the `<hyperv>` tag, add this to enable display out:
+Also, inside the `<hyperv>` tag, add this to enable display out(this was one of the major things I had issues with when trying to get proper display passthrough working):
 
 `<vendor_id state="on" value="randomid"/>`
 
 Next, we must passthrough our gpu, audio, and any USB devices you want to use in your vm. For each device in the IOMMU group with containing your GPU, click Add Hardware, select PCI Host device, and select by ID from there, repeat for your IOMMU group with your audio device. For any USB devices, add them as a USB host device.
 
-After that, go to your gpu host device, and enable ROM bar, along, and make sure the rom xml tag below the `</source>` closing tag looks like this(replace BIOS_NAME with your vBIOS name from earlier):
+After that, go to your gpu host device, and enable ROM bar, along, and make sure the rom xml tag below the `</source>` closing tag looks like this(replace **BIOS_NAME** with your vBIOS name from earlier):
 `<rom bar="on" file="/usr/share/vgabios/BIOS_NAME.rom"/>`
 
 Make sure to click apply and it will autoformat the xml.
@@ -235,7 +235,7 @@ VIRSH_GPU_AUDIO=pci_0000_xx_00_1
 
 # Step 9: Testing and debugging the hooks and the scripts
 
-Now, this is what tripped me up for so many months, and it was all because I couldn't properly `rmmod amdgpu`. What we're about to do, you'll need a second way of interfacing with the computer that doesn't require a display, like an SSH session from another laptop, as we will lose complete control and display output of the computer while debugging, but the computer will be running headless.
+Now, this is what tripped me up for so many months, and it was all because I couldn't properly `rmmod amdgpu`. What we're about to do, you'll need a second way of interfacing with the computer that doesn't require a display, like an SSH session from another laptop, as we will lose complete control and display output of the computer while debugging, but the computer will be running headless. If that is not possible, it will be incredibly difficult to narrow down what is causing modprobe or the script to fail.
 
 ## Finding errors
 
@@ -243,14 +243,22 @@ The most common error(and the one that broke everything) is unloading the amdgpu
 
 `/etc/libvirt/hooks/qemu.d/win10/prepare/begin/start.sh`
 
-IF YOU SEE ANY ERRORS, IMMEDIATELY Ctrl+C, but DO NOT REBOOT, STAY IN THAT SHELL FOR TROUBLESHOOTING BELOW.
+ ### **IF YOU SEE ANY ERRORS, IMMEDIATELY Ctrl+C, but DO NOT REBOOT, STAY IN THAT SHELL FOR TROUBLESHOOTING BELOW.**
 
-(Any vtconsole bind errors can be ignored)
+**(Any vtconsole bind errors can be ignored)**
 
 In my case, I had this error:
 `modprobe: FATAL: Module amdgpu is in use.`
+If the error above shows up, go to [here](https://github.com/lando07/AMD-7000-Series-VFIO?tab=readme-ov-file#Troubleshooting_AMDGPU)
+
+I also had this error:
+`modprobe: FATAL: Module snd_hda_intel is in use.`
+If the error above shows up, go to [here](https://github.com/lando07/AMD-7000-Series-VFIO?tab=readme-ov-file#troubleshooting-snd_hda_intel)
+
 
 This happens for usually one of 2 reasons, another kernel module is using amdgpu, and/or certain software and/or daemons are using amdgpu.
+
+## Troubleshooting AMDGPU
 
 First, run this command:
 
@@ -275,7 +283,7 @@ crc16                  12288  3 bluetooth,amdgpu,ext4
 
 ```
 
-At the top is the amdgpu driver, and below are other modules, and the modules on the right are modules USED by the amdgpu driver. Since there are no modules USING the amdgpu driver, we do not need to remove any additional kernel modules to remove the amdgpu module.
+At the top is the amdgpu driver, and below are other modules, and the modules on the right are modules **used** by the amdgpu driver. Since there are no modules ***using*** the amdgpu driver, we do not need to remove any additional kernel modules to remove the amdgpu module.
 
 ### So, why can't we remove the kernel module?
 
