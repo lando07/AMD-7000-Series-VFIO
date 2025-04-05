@@ -19,7 +19,7 @@ echo 1 > /sys/class/vtconsole/vtcon1/bind
 
 sleep 3
 
-#echo "efi-framebuffer.0" > /sys/bus/platform/drivers/efi-framebuffer/bind
+echo "efi-framebuffer.0" > /sys/bus/platform/drivers/efi-framebuffer/bind
 
 modprobe amdgpu
 modprobe snd_hda_intel
@@ -31,6 +31,6 @@ sleep 3
 systemctl start sddm
 
 sleep 3
-
 #may not be required, only uncomment this line if the start script stops your audio service
 #systemctl start YOUR_AUDIO_SERVICE
+
